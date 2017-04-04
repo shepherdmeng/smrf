@@ -382,10 +382,11 @@ class SMRF():
         for v in self.distribute:
             self.distribute[v].initialize(self.topo, self.data.metadata)
 
+        sub_count = 0
+
         #------------------------------------------------------------------------------
         # Distribute the data
         for output_count,t in enumerate(self.date_time):
-
             # wait here for the model to catch up if needed
 
             startTime = datetime.now()
@@ -418,7 +419,10 @@ class SMRF():
             # 4. Precipitation
             self.distribute['precip'].distribute(self.data.precip.ix[t],
                                                 self.distribute['vapor_pressure'].dew_point,
+                                                t,
                                                 self.topo.mask)
+
+            storms = self.distribute['precip'].storms
 
             # 5. Albedo
             self.distribute['albedo'].distribute(t, illum_ang, self.distribute['precip'].storm_days)
@@ -445,19 +449,8 @@ class SMRF():
             self.distribute['soil_temp'].distribute()
 
 
-            # output at the frequency and the last time step
-            if (output_count % self.config['output']['frequency'] == 0) or (output_count == len(self.date_time)):
-                self.output(t)
-
-#             plt.imshow(self.distribute['albedo'].albedo_vis), plt.colorbar(), plt.show()
-
-
-            # pull all the images together to create the input image
-#             d[t]['air_temp'] = self.distribute['air_temp'].image
-#             d[t]['vapor_pressure'] = self.distribute['vapor_pressure'].image
-
-
-            # check if out put is desired
+            # 9. output at the frequency and the last time step
+            self.output(t)
 
             telapsed = datetime.now() - startTime
             self._logger.debug('%.1f seconds for time step' % telapsed.total_seconds())
@@ -641,33 +634,58 @@ class SMRF():
             self.output_variables = None
 
 
-    def output(self, current_time_step):
+    def output(self, current_time_step,  module = None, out_var = None):
         """
         Output the forcing data or model outputs for the current_time_step.
 
         Args:
             current_time_step (date_time): the current time step datetime object
+
+            module -
+            var_name -
+
         """
+        output_count = self.date_time.index(current_time_step)
 
-        # get the output variables then pass to the function
-        for v in self.out_func.variable_list.values():
+        if (output_count % self.config['output']['frequency'] == 0) or (output_count == len(self.date_time)):
 
-            # get the data desired
-            output_now = True
-            data = getattr(self.distribute[v['module']], v['variable'])
+            #Not requesting specific output, so output all
+            if module == None and out_var == None:
+                post_process = False
+            else:
+                post_process = True
 
-#             elif v['variable'] in q.keys():
-#                 data = q[v['variable']].get(current_time_step)
-#             else:
-#                 self._logger.warning('Output variable %s not in queue' % v['variable'])
-#                 output_now = False
+            #add only one variable to the output list and preceed as normal
+            if post_process:
+                if module == None or out_var == None:
+                    raise ValueError(" Function requires an output module and variable name when outputting a specific variables")
+                else:
+                    var_vals = [self.out_func.variable_list[out_var]]
 
-            if output_now:
+            #Output all the variables
+            else:
+                var_vals = self.out_func.variable_list.values()
+
+            # get the output variables then pass to the function
+            for v in var_vals:
+                # get the data desired
+                data = getattr(self.distribute[v['module']], v['variable'])
+
                 if data is None:
                     data = np.zeros((self.topo.ny, self.topo.nx))
 
                 # output the time step
+                self._logger.debug("Outputting {0}".format(v['module']))
+
                 self.out_func.output(v['variable'], data, current_time_step)
+
+    def post_process(self):
+        """
+        Execute all the post processors
+        """
+
+        for k in self.distribute.keys():
+            self.distribute[k].post_processor(self)
 
 
     def title(self, option):
