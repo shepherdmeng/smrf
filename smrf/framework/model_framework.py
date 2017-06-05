@@ -422,46 +422,49 @@ class SMRF():
 
 
             # 1. Air temperature
-            self.distribute['air_temp'].distribute(self.data.air_temp.ix[t])
+#            self.distribute['air_temp'].distribute(self.data.air_temp.ix[t])
 
             # 2. Vapor pressure
-            self.distribute['vapor_pressure'].distribute(self.data.vapor_pressure.ix[t],
-                                                        self.distribute['air_temp'].air_temp)
+#            self.distribute['vapor_pressure'].distribute(self.data.vapor_pressure.ix[t],
+#                                                        self.distribute['air_temp'].air_temp)
 
             # 3. Wind_speed and wind_direction
-            self.distribute['wind'].distribute(self.data.wind_speed.ix[t],
-                                               self.data.wind_direction.ix[t])
+#            self.distribute['wind'].distribute(self.data.wind_speed.ix[t],
+#                                               self.data.wind_direction.ix[t])
 
             # 4. Precipitation
-            self.distribute['precip'].distribute(self.data.precip.ix[t],
-                                                self.distribute['vapor_pressure'].dew_point,
-                                                t,
-                                                self.topo.mask)
+#            self.distribute['precip'].distribute(self.data.precip.ix[t],
+#                                                self.distribute['vapor_pressure'].dew_point,
+#                                                t,
+#                                                self.topo.mask)
 
             # 5. Albedo
-            self.distribute['albedo'].distribute(t, illum_ang, self.distribute['precip'].storm_days)
+#            self.distribute['albedo'].distribute(t, illum_ang, self.distribute['precip'].storm_days)
 
             # 6. Solar
             self.distribute['solar'].distribute(self.data.cloud_factor.ix[t],
                                                 illum_ang,
                                                 cosz,
                                                 azimuth,
-                                                self.distribute['precip'].last_storm_day_basin,
-                                                self.distribute['albedo'].albedo_vis,
-                                                self.distribute['albedo'].albedo_ir)
+                                                #self.distribute['precip'].last_storm_day_basin,
+                                                1.0,
+                                                #self.distribute['albedo'].albedo_vis,
+                                                #self.distribute['albedo'].albedo_ir)
+                                                0.0,
+                                                0.0)
 
             # 7. thermal radiation
-            if self.distribute['thermal'].gridded:
-                self.distribute['thermal'].distribute_thermal(self.data.thermal.ix[t],
-                                                              self.distribute['air_temp'].air_temp)
-            else:
-                self.distribute['thermal'].distribute(t, self.distribute['air_temp'].air_temp,
-                                                      self.distribute['vapor_pressure'].vapor_pressure,
-                                                      self.distribute['vapor_pressure'].dew_point,
-                                                      self.distribute['solar'].cloud_factor)
+#            if self.distribute['thermal'].gridded:
+#               self.distribute['thermal'].distribute_thermal(self.data.thermal.ix[t],
+#                                                              self.distribute['air_temp'].air_temp)
+#            else:
+#               self.distribute['thermal'].distribute(t, self.distribute['air_temp'].air_temp,
+#                                                      self.distribute['vapor_pressure'].vapor_pressure,
+#                                                      self.distribute['vapor_pressure'].dew_point,
+#                                                      self.distribute['solar'].cloud_factor)
 
             # 8. Soil temperature
-            self.distribute['soil_temp'].distribute()
+#            self.distribute['soil_temp'].distribute()
 
 
             # 9. output at the frequency and the last time step

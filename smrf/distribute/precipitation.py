@@ -224,7 +224,6 @@ class ppt(image_data.image_data):
         # only need to distribute precip if there is any
         data = data[self.stations]
 
-
         if self.corrected_precip.ix[time].sum() > 0:
 
             #Check for time in every storm
