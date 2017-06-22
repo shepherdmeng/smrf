@@ -245,18 +245,18 @@ class SMRF():
 
 
         # 1. Air temperature
-        self.distribute['air_temp'] = distribute.air_temp.ta(self.config['air_temp'])  # get the class
+#        self.distribute['air_temp'] = distribute.air_temp.ta(self.config['air_temp'])  # get the class
 
         # 2. Vapor pressure
-        self.distribute['vapor_pressure'] = distribute.vapor_pressure.vp(self.config['vapor_pressure'])
+#        self.distribute['vapor_pressure'] = distribute.vapor_pressure.vp(self.config['vapor_pressure'])
 
         # 3. Wind
-        self.distribute['wind'] = distribute.wind.wind(self.config['wind'],
-                                                       self.config['system']['temp_dir'])
+#        self.distribute['wind'] = distribute.wind.wind(self.config['wind'],
+#                                                       self.config['system']['temp_dir'])
 
         # 4. Precipitation
-        self.distribute['precip'] = distribute.precipitation.ppt(self.config['precip'],
-                                                                 self.config['time']['time_step'])
+#        self.distribute['precip'] = distribute.precipitation.ppt(self.config['precip'],
+#                                                                 self.config['time']['time_step'])
 
         # 5. Albedo
         self.distribute['albedo'] = distribute.albedo.albedo(self.config['albedo'])
@@ -268,10 +268,10 @@ class SMRF():
                                                           self.config['system']['temp_dir'])
 
         # 7. thermal radiation
-        self.distribute['thermal'] = distribute.thermal.th(self.config['thermal'])
+#        self.distribute['thermal'] = distribute.thermal.th(self.config['thermal'])
 
         # 8. soil temperature
-        self.distribute['soil_temp'] = distribute.soil_temp.ts(self.config['soil_temp'])
+#        self.distribute['soil_temp'] = distribute.soil_temp.ts(self.config['soil_temp'])
 
 
     def loadData(self):
@@ -447,7 +447,7 @@ class SMRF():
                                                 cosz,
                                                 azimuth,
                                                 #self.distribute['precip'].last_storm_day_basin,
-                                                1.0,
+                                                0.0,
                                                 #self.distribute['albedo'].albedo_vis,
                                                 #self.distribute['albedo'].albedo_ir)
                                                 0.0,
@@ -570,7 +570,7 @@ class SMRF():
                             args=(q, self.date_time)))
 
         # 8. Soil temperature
-#         self.distribute['soil_temp'].distribute()
+        self.distribute['soil_temp'].distribute()
 
         # output thread
         t.append(queue.QueueOutput(q, self.date_time,

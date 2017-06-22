@@ -313,17 +313,17 @@ class solar(image_data.image_data):
 			
 			# Only calculate clear sky radiation
 			#------------------------------------------------------------------------------
-            self.veg_vis_beam = self.clear_vis_beam
+            # self.veg_vis_beam = self.clear_vis_beam
 
         	# correct diffuse
-            self.veg_vis_diffuse = self.clear_vis_diffuse
+            # self.veg_vis_diffuse = self.clear_vis_diffuse
 
         	### calculate for ir ###
         	# correct beam
-            self.veg_ir_beam = self.clear_ir_beam
+            # self.veg_ir_beam = self.clear_ir_beam
 
         	# correct diffuse
-            self.veg_ir_diffuse = self.clear_ir_diffuse
+            # self.veg_ir_diffuse = self.clear_ir_diffuse
 
             #------------------------------------------------------------------------------
             # calculate net radiation
@@ -403,7 +403,7 @@ class solar(image_data.image_data):
 
                 # calculate net radiation
                 self.calc_net(albedo_vis, albedo_ir)
-
+                
             else:
                 self.net_solar = None
 
@@ -516,12 +516,12 @@ class solar(image_data.image_data):
 
         # calculate net visible
         #vv_n = (self.veg_vis_beam + self.veg_vis_diffuse) * (1 - albedo_vis)
-        vv_n = (self.veg_vis_beam + self.veg_vis_diffuse) # ignore albedo for net radiation at canopy
+        vv_n = (self.clear_vis_beam + self.clear_vis_diffuse) # ignore albedo for net radiation at canopy
         vv_n = utils.set_min_max(vv_n, self.min, self.max) # ensure min and max's are met
 
         # calculate net ir
         #vir_n = (self.veg_ir_beam + self.veg_ir_diffuse) * (1 - albedo_ir)
-        vir_n = (self.veg_ir_beam + self.veg_ir_diffuse) # ignore albedo for net radiation at canopy
+        vir_n = (self.clear_ir_beam + self.clear_ir_diffuse) # ignore albedo for net radiation at canopy
         vir_n = utils.set_min_max(vir_n, self.min, self.max) # ensure min and max's are met
 
         # calculate total net
