@@ -304,7 +304,7 @@ class solar(image_data.image_data):
             #------------------------------------------------------------------------------
             # correct clear sky for cloud
 
-            #self.cloud_correct()
+            self.cloud_correct()
 
             #------------------------------------------------------------------------------
             # correct cloud for veg
@@ -516,17 +516,22 @@ class solar(image_data.image_data):
 
         # calculate net visible
         #vv_n = (self.veg_vis_beam + self.veg_vis_diffuse) * (1 - albedo_vis)
-        vv_n = (self.clear_vis_beam + self.clear_vis_diffuse) # ignore albedo for net radiation at canopy
-        vv_n = utils.set_min_max(vv_n, self.min, self.max) # ensure min and max's are met
+        #vv_n = (self.clear_vis_beam + self.clear_vis_diffuse) # ignore albedo for net radiation at canopy
+        vv_n = (self.cloud_vis_beam + self.cloud_vis_diffuse) # ignore albedo for net radiation at canopy
+        #vv_n = utils.set_min_max(vv_n, self.min, self.max) # ensure min and max's are met
+        vv_n = utils.set_min_max(vv_n, self.min, 1400.0) # ensure min and max's are met
 
         # calculate net ir
         #vir_n = (self.veg_ir_beam + self.veg_ir_diffuse) * (1 - albedo_ir)
-        vir_n = (self.clear_ir_beam + self.clear_ir_diffuse) # ignore albedo for net radiation at canopy
-        vir_n = utils.set_min_max(vir_n, self.min, self.max) # ensure min and max's are met
+        #vir_n = (self.clear_ir_beam + self.clear_ir_diffuse) # ignore albedo for net radiation at canopy
+        vir_n = (self.cloud_ir_beam + self.cloud_ir_diffuse) # ignore albedo for net radiation at canopy
+        #vir_n = utils.set_min_max(vir_n, self.min, self.max) # ensure min and max's are met
+        vir_n = utils.set_min_max(vir_n, self.min, 1400.0) # ensure min and max's are met
 
         # calculate total net
         self.net_solar = vv_n + vir_n
-        self.net_solar = utils.set_min_max(self.net_solar, self.min, self.max) # ensure min and max's are met
+        #self.net_solar = utils.set_min_max(self.net_solar, self.min, self.max) # ensure min and max's are met
+        self.net_solar = utils.set_min_max(self.net_solar, self.min, 1400.0) # ensure min and max's are met
 
 
     def calc_ir(self, min_storm_day, wy_day, tz_min_west, wyear, cosz, azimuth):
