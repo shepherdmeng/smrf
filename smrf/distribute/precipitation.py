@@ -160,6 +160,7 @@ class ppt(image_data.image_data):
             self._logger.info("Identified Storms:\n{0}".format(self.storms))
             self.storm_id = 0
             self._logger.info("Estimated number of storms: {0}".format(storm_count))
+            self._logger.info("Average storm duration: {0}".format(self.storms['duration'].mean()))
 
 
     def distribute_precip(self, data):

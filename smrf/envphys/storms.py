@@ -202,7 +202,7 @@ def time_since_storm_basin(precipitation, storm, stormid, storming, time, time_s
 
     return stormDays
 
-def tracking_by_station(precip, mass_thresh = 0.01, steps_thresh = 3):
+def tracking_by_station(precip, mass_thresh = 0.1, steps_thresh = 3):
     """
     Processes the vector station data prior to the data being distributed
 
@@ -225,7 +225,7 @@ def tracking_by_station(precip, mass_thresh = 0.01, steps_thresh = 3):
                          {start:date_time3,end:date_time4,'BOG1':50, 'ATL1':45},
                          ]
 
-                         #would be a two storms at stations BOG1 and ATL1
+                         #would be two storms at stations BOG1 and ATL1
 
         mass_thresh: mass amount that constitutes a real precip event,
             default = 0.01.
@@ -288,11 +288,16 @@ def tracking_by_station(precip, mass_thresh = 0.01, steps_thresh = 3):
 
         if time_steps_since_precip >= steps_thresh and is_storming:
             is_storming = False
+            new_storm['duration'] = new_storm['end'] - new_storm['start']
+
+            new_storm['avg_mass'] = sum([new_storm[t] for t in stations])/len(stations)
             storms.append(new_storm)
             #print "=="*10 + "> not storming!"
 
     #Append the last storm if we ended during a storm
     if is_storming:
+        new_storm['duration'] = new_storm['end'] - new_storm['start']
+
         storms.append(new_storm)
 
     storm_count = len(storms)

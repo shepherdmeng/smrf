@@ -153,14 +153,6 @@ class SMRF():
         if len(errors) > 0:
             self._logger.error("Errors in the config file. See configuration status report above.")
             sys.exit()
-        else:
-
-            #write the config file to the output dir
-            fname = 'config.ini'
-            full_config_out = self.config['output']['out_location'] + '/'+fname
-            self._logger.info("Writing config file with full options.")
-            io.generate_config(self.config,full_config_out)
-
 
         # check for the desired sections
         if 'stations' not in self.config:
@@ -732,6 +724,12 @@ class SMRF():
         else:
             self._logger.info('No variables will be output')
             self.output_variables = None
+
+            #write the config file to the output dir
+            fname = 'config.ini'
+            full_config_out = self.config['output']['out_location'] + '/'+fname
+            self._logger.info("Writing config file with full options.")
+            io.generate_config(self.config,full_config_out)
 
     def output(self, current_time_step,  module=None, out_var=None):
         """

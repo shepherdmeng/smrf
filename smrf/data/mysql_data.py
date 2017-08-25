@@ -14,7 +14,6 @@ import scipy.stats as stats
 import pandas as pd
 import utm
 import mysql.connector
-# from mysql.connector import errorcode
 from datetime import datetime, timedelta
 
 import logging
