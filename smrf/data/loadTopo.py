@@ -191,7 +191,7 @@ class topo():
         if self.topoConfig['slope'] == 'horn1981':
             slope, aspect = dem_processing.slope_aspect_horn1981(self.dem, self.x, self.y)
             
-            ipw_slope = np.pi * np.sin(slope) /180 # convert to the ipw format
+            ipw_slope = np.sin(slope * np.pi /180) # convert to the ipw format
             ipw_aspect = -1*(np.pi/180*aspect - np.pi)
             
             # put the slope and aspect into the gradient file for the stoporad_in.ipw file
