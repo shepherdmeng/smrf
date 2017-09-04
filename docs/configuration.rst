@@ -90,6 +90,13 @@ basin_lat
 
 basin_lon
    The longitude of the middle of the basin, used for calculating sun angle
+   
+slope
+   Method for calculating the slope. Choices are:
+   
+   * (default) nsew :func:`smrf.utils.dem_processing.slope_aspect_nsew`
+   * Horn1981 :func:`smrf.utils.dem_processing.slope_aspect_horn1981`
+   
 
 Example ::
 

@@ -185,34 +185,33 @@ class topo():
         ts.start()
 
         # slope and aspect
+        self._logger.debug('Calculating the slope and aspect with the {} method'.format(self.topoConfig['slope']))
         gfile = os.path.abspath(os.path.expanduser(
             os.path.join(self.tempDir, 'gradient.ipw')
             ))
+        
         if self.topoConfig['slope'] == 'horn1981':
             slope, aspect = dem_processing.slope_aspect_horn1981(self.dem, self.x, self.y)
             
-            ipw_slope = np.sin(slope * np.pi /180) # convert to the ipw format
-            ipw_aspect = -1*(np.pi/180*aspect - np.pi)
-            
-            # put the slope and aspect into the gradient file for the stoporad_in.ipw file
-            ipw_slope[0,0] = 1.0
-            g = ipw.IPW()
-            g.new_band(ipw_slope)
-            g.new_band(ipw_aspect)
-            g.add_geo_hdr([self.x[0], self.y[0]],
-                          [np.mean(np.diff(self.x)), np.mean(np.diff(self.y))],
-                          'm', 'UTM')
-            g.write(gfile, 8)
-            
         elif self.topoConfig['slope'] == 'nsew':
-             # calculate the gradient
-            self._logger.debug('gradient file - %s' % gfile)
-    
-            tg = Process(target=self._gradient,
-                         args=(self.topoConfig['dem'], gfile))
-            tg.start()
-            tg.join()
-
+            slope, aspect = dem_processing.slope_aspect_nsew(self.dem, self.x, self.y)
+        
+        else:
+            raise ValueError('{} not a recognized value'.format(self.topoConfig['slope']))
+            
+        ipw_slope = np.sin(slope * np.pi /180) # convert to the ipw format
+        ipw_aspect = -1*(np.pi/180*aspect - np.pi)
+        
+        # put the slope and aspect into the gradient file for the stoporad_in.ipw file
+        ipw_slope[0,0] = 1.0
+        g = ipw.IPW()
+        g.new_band(ipw_slope)
+        g.new_band(ipw_aspect)
+        g.add_geo_hdr([self.x[0], self.y[0]],
+                      [np.mean(np.diff(self.x)), np.mean(np.diff(self.y))],
+                      'm', 'UTM')
+        g.write(gfile, 8)
+            
         # wait for the processes to stop
         ts.join()
 

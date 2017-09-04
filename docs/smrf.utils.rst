@@ -1,6 +1,14 @@
 smrf.utils package
 ==================
 
+smrf.utils.dem_processing module
+--------------------------------
+
+.. automodule:: smrf.utils.dem_processing
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 smrf.utils.queue module
 -----------------------
 
