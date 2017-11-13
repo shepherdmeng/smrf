@@ -20,6 +20,7 @@ from datetime import date
 import pytz
 import pandas as pd
 
+import coloredlogs
 
 class MasterConfig():
     def __init__(self,filename):
@@ -687,6 +688,166 @@ def get_user_config(fname):
 
     return cfg
 
+def compare_config_files(user_cfg_path, compare_cfg_paths):
+    """
+    looks at the users provided config file and compares it with the  compare_cfg
+    and only shows where entries are not the same.
+
+    Args:
+        user_cfg_path - Path to the config file that is being checked. Useful for relative file paths. If none assumes relative paths from CWD.
+        compare_cfg_paths - list of Config file paths to be used for comparison
+
+    Returns:
+        differences: Returns a list of string messages that show the differences in the files in relation to the users config.
+
+    """
+    #At the very least we want to compare the user_cfg and the master_cfg for defaults
+    #Below is section, item, filename
+    msg = "{: <20} {: <30} {: <30}"
+
+    #Storage for cfg dicts
+    compare_cfgs = []
+
+    #Storage for the comparison strings
+    comparison = []
+
+    hdr = ["Section","Item","{0}".format(os.path.basename(user_cfg_path))]
+
+    # Was an empty list passed?
+    if compare_cfg_paths:
+        for f in compare_cfg_paths:
+            msg += "{: <30}"
+
+            #Check for real files and continue on.
+            if os.path.isfile(f):
+                c_cfg = get_user_config(f)
+                c_cfg = update_config_paths(c_cfg,f)
+                compare_cfgs.append(c_cfg)
+
+                hdr.append(os.path.basename(f))
+            else:
+                print("{0} is an invalid path".format(f))
+
+    #Add in comparison ability to the default
+    hdr.append("Default")
+    msg += "{: <30}"
+    mcfg = get_master_config()
+
+    #Get the main file to compare with
+    cfg = get_user_config(user_cfg_path)
+
+    cfg = update_config_paths(cfg,user_cfg_path)
+
+    #Add the header to the output
+    comparison.append(msg.format(*hdr))
+    comparison.append("="*len(msg.format(*hdr)))
+
+    all_msgs = []
+    #Aggregate all sections items and cfgs
+    all_cfgs = [cfg]
+    all_cfgs += compare_cfgs
+
+    all_sections =[]
+    all_items = []
+
+    for c in all_cfgs:
+
+        all_sections += c.keys()
+        for section in c.keys():
+            all_items += c[section].keys()
+
+    #Get all the unique ones
+    all_items = list(set(all_items))
+    all_sections = list(set(all_sections))
+
+
+    #Add in the master config
+    all_cfgs.append( mcfg)
+
+    #Got to check them all
+    for section in all_sections:
+        for item in all_items:
+
+            #Merge all the entries provided so we can cover the list scenario
+            entries = []
+            for c in all_cfgs:
+                if section in c.keys():
+                    if item in c[section]:
+                        if c is mcfg:
+                            v = c[section][item].default
+                        else:
+                            v = c[section][item]
+                        #Put them in a list for indexing
+                        if type(v) != list:
+                            v = [v]
+
+                        entries += v
+
+            #Cycle through all the unique options provided and build the message
+            entries = list(set(entries))
+
+            for entry in entries:
+                #Every message will have the section and item names
+                base_msg = [section, item]
+
+                #The values we append for certain cases
+                build_msg = []
+
+                #The count variable tracking how many matches we have
+                match_instances = 0
+
+                for c in all_cfgs:
+
+                    #Section checking
+                    if section not in c.keys():
+                        if c is mcfg:
+                            build_msg.append("Invalid Section")
+                        else:
+                            build_msg.append("Section not provided")
+
+                    #Item checking
+                    elif item not in c[section].keys():
+                        if c is mcfg:
+                            build_msg.append("Unregistered Item")
+                        else:
+                            build_msg.append("Item not provided")
+
+
+                    #Generic case
+                    else:
+                        #Check for a difference as compared to the users main cfg
+                        if section in cfg:
+                            if item in cfg[section]:
+                                if (cfg[section][item]) != list:
+                                    users_val = [cfg[section][item]]
+                                else:
+                                    users_val = cfg[section][item]
+                            else:
+                                users_val = []
+                        else:
+                            users_val = []
+
+
+                        if entry in users_val or c is cfg:
+                            build_msg.append(entry)
+
+                        else:
+                            #Produce a check mark
+                            build_msg.append("X")
+                            match_instances += 1
+                        # except:
+                        #     #A cfg has an item that the users config does not
+                        #     build_msg.append("Not provided")
+
+                msg_inputs = base_msg + build_msg
+
+                #Was there anything worth printing? Avoid printing a perfect match
+                if match_instances != len(all_cfgs)-1:
+                    comparison.append(msg.format(*msg_inputs))
+
+    #Print out the final report
+    for c in comparison:
+        print(c)
 
 def type_configobj(d):
     """recursively loop through dictionary calling config_type"""

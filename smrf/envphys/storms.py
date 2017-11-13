@@ -454,7 +454,6 @@ def clip_and_correct(precip,storms):
     for station in precip.columns:
         original = precip[station].sum()
         clipped = precip_clipped[station].sum()
-
         if original == 0:
             c = 1.0
         elif clipped == 0:

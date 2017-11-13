@@ -174,13 +174,14 @@ class wind(image_data.image_data):
 
             # get the enhancements for the stations
             if 'enhancement' not in self.metadata.columns:
-                self.metadata['enhancement'] = \
-                    float(self.config['station_default'])
-
                 for m in self.metadata.index:
                     if m.lower() in self.config:
                         self.metadata.loc[m, 'enhancement'] = \
-                            float(self.config[m.lower()])
+                                self.config[m.lower()]
+                    else:
+                        self.metadata.loc[m, 'enhancement'] = \
+                                  self.config['station_default']
+
 
     def distribute(self, data_speed, data_direction):
         """

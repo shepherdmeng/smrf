@@ -10,14 +10,27 @@ def main():
                         help='Path to SMRF config file that needs checking')
     parser.add_argument('-w', dest='write', action='store_true',
                         help='Determines whether to write out the file with all the defaults')
+
+    parser.add_argument('-c', dest='compare', action='store_true',
+                        help='Compares two ini files and reports the differences.')
+
+    parser.add_argument('-l','--cfg_list', nargs='*', help='A comma separated list of paths to config files', required=True)
+
     args = parser.parse_args()
 
     if os.path.isfile(args.config_file):
-        user_cfg = io.get_user_config(args.config_file)
-        config = io.get_master_config()
-        user_cfg = io.add_defaults(user_cfg,config)
-        warnings, errors = io.check_config_file(user_cfg, config,user_cfg_path=args.config_file)
-        io.print_config_report(warnings,errors)
+        #If comparing files ignore all else
+        if args.compare:
+            io.compare_config_files(args.config_file,args.cfg_list)
+
+        #Other wise check the config files for errors
+        else:
+            user_cfg = io.get_user_config(args.config_file)
+            config = io.get_master_config()
+            user_cfg = io.add_defaults(user_cfg,config)
+            warnings, errors = io.check_config_file(user_cfg, config,user_cfg_path=args.config_file)
+            io.print_config_report(warnings,errors)
+
     else:
         raise IOError('File does not exist.')
 
