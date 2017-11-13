@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import smrf
 from smrf.utils import io
+from smrf.utils import utils
 from datetime import date
 import os
 import sys
@@ -14,11 +14,9 @@ def create_project(summary):
 
     #Create file structure
     summary['out location'] = os.path.join(summary['path'],'output')
-    summary['temp_dir'] = os.path.join(summary['path'],'tmp')
+    summary['SMRF Version'] = utils.getgitinfo()
     print('\tCreating the directories for the project...')
     os.mkdir(summary['path'])
-    os.mkdir(summary['out location'])
-    os.mkdir(summary['temp_dir'])
 
     #Creare the default config
     print('\tMaking default config file for SMRF...')
@@ -34,7 +32,6 @@ def create_project(summary):
                 sec[item] = entry.default
             cfg[name] = sec
     cfg['output']['out_location'] = summary['out location']
-    cfg['system']['temp_dir'] = summary['temp_dir']
     io.generate_config(cfg,os.path.join(summary['path'],'config.ini'), inicheck=True)
 
     #Create a README for the run.
@@ -44,7 +41,7 @@ def create_project(summary):
         f.write("=================\n")
         f.write("\n")
 
-        order_keys = ['project name', 'date created','author', 'path', 'description' ]
+        order_keys = ['project name', 'date created','author', 'path', 'description','SMRF Version' ]
         for k in order_keys:
             f.write('{0: <20} {1: <30}\n'.format((k.upper())+':',summary[k]))
         f.close()

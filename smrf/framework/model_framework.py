@@ -22,7 +22,7 @@ Example:
     >>> s.distributeData() # distribute
 
 """
-
+import shutil
 import logging
 import os
 import sys
@@ -99,8 +99,8 @@ class SMRF():
             raise Exception(('The configuration file is not encoded in '
                                     'UTF-8, please change and retry'))
 
-        #Make the tmp and output directories if they do not exist
-        makeable_dirs = [self.config['system']['temp_dir'],self.config['output']['out_location']]
+        #Make output directories if they do not exist
+        makeable_dirs = [self.config['output']['out_location']]
 
         for f in makeable_dirs:
             path = os.path.abspath(os.path.join(os.path.split(configFile)[0],f))
@@ -111,8 +111,6 @@ class SMRF():
 
                 except OSError as e:
                     raise e
-
-
 
         # start logging
         if external_logger == None:
@@ -179,6 +177,16 @@ class SMRF():
         #After writing update the paths to be full abs paths.
         self.config = io.update_config_paths(self.config, configFile)
 
+        #Make the tmp dir if it doesn't exist.
+        self.temp_dir = os.path.join(self.config['output']['out_location'],'tmp')
+        try:
+            os.makedirs(self.temp_dir)
+        except Exception as e:
+            raise OSError("Error creating the temp folder.\n{0}".format(self.temp_dir))
+
+        #Add tmp to the config file but after the outputting of the config file so its not picked up.
+        self.config['system']['temp_dir'] = self.temp_dir
+
         # if a gridded dataset will be used
         self.gridded = False
         if 'gridded' in self.config:
@@ -237,6 +245,9 @@ class SMRF():
                     os.remove(self.distribute['solar'].vis_file)
                 if os.path.isfile(self.distribute['solar'].ir_file):
                     os.remove(self.distribute['solar'].ir_file)
+        #Remove the tmpdir
+        if os.path.isdir(self.temp_dir):
+            shutil.rmtree(self.temp_dir)
 
         self._logger.info('SMRF closed --> %s' % datetime.now())
 
