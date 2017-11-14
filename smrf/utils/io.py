@@ -827,14 +827,16 @@ def compare_config_files(user_cfg_path, compare_cfg_paths):
                         else:
                             users_val = []
 
-
-                        if entry in users_val or c is cfg:
-                            build_msg.append(entry)
-
-                        else:
+                        #Check
+                        if c is cfg:
+                            if section
+                        if entry in users_val:
                             #Produce a check mark
                             build_msg.append("X")
                             match_instances += 1
+                        else:
+                            build_msg.append(entry)
+
                         # except:
                         #     #A cfg has an item that the users config does not
                         #     build_msg.append("Not provided")
@@ -842,7 +844,7 @@ def compare_config_files(user_cfg_path, compare_cfg_paths):
                 msg_inputs = base_msg + build_msg
 
                 #Was there anything worth printing? Avoid printing a perfect match
-                if match_instances != len(all_cfgs)-1:
+                if match_instances != len(all_cfgs):
                     comparison.append(msg.format(*msg_inputs))
 
     #Print out the final report
