@@ -179,5 +179,6 @@ setup(
 	     'scripts/update_configs',
              'scripts/run_smrf',
 	     'scripts/mk_project',
-	     'scripts/gen_maxus']
+	     'scripts/gen_maxus',
+	     'scripts/basin_setup']
 )

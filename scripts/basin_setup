@@ -4,6 +4,8 @@ import argparse
 import requests
 import zipfile
 import StringIO
+import os
+
 
 def download_zipped_url(url):
     """
@@ -17,18 +19,24 @@ def download_zipped_url(url):
 p = argparse.ArgumentParser(description='Setup a new basin for SMRF. Creates all the required files.')
 
 p.add_argument('-f','--basin_shapefile', dest='basin_shapefile',required=True,
-                description="Path to shapefile that defines the basin")
+                help="Path to shapefile that defines the basin")
 
 p.add_argument('-c','--cell_size', dest='cell_size',required=False, default=50,
-                description="Pixel size to use for the basin in meters")
+                help="Pixel size to use for the basin in meters")
 
 p.add_argument('-lf','--landfire', dest='landfire',required=False, action="store_true",
-                description="flag for what data type to use for vegetation maps")
+                help="flag for what data type to use for vegetation maps")
 
-p.add_argument('-lf','--nlcdas', dest='landfire',required=False, action="store_true",
-                description="flag for what data type to use for vegetation maps")
+p.add_argument('-nl','--nlcdas', dest='landfire',required=False, action="store_true",
+                help="flag for what data type to use for vegetation maps")
 
-args = parser.parse_args()
+args = p.parse_args()
+
+#Check inputs
+if os.path.ifile(args.basin_shapefile):
+    shp_f = args.basin_shapefile
+else:
+    raise IOError("Path to basin shapefile does not exist.\n %s" % args.basin_shapefile)
 
 #Reqeust to use landfire data
 if args.nlcd and args.landfire:
@@ -36,19 +44,16 @@ if args.nlcd and args.landfire:
 
 #Use the landfire data set
 elif args.landfire:
-    veg_height_url=
+    veg_height_url= \
     "https://www.landfire.gov/bulk/downloadfile.php?FNAME=US_140_mosaic-US_140EVH_12052016.zip&TYPE=landfire"
 
 
-
-
-    veg_type_url=
+    veg_type_url= \
     "https://www.landfire.gov/bulk/downloadfile.php?FNAME=US_140_mosaic-US_140EVH_12052016.zip&TYPE=landfire"
 
 
 elif args.nlcdas:
-    url =
+    url = \
     "http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=nlcd_2011_landcover_2011_edition_2014_10_10.zip"
-
 
 #Download the data for veg height, veg type
