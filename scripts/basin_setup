@@ -5,12 +5,13 @@ import requests
 import zipfile
 import StringIO
 import os
-
+import threading
 
 def download_zipped_url(url):
     """
     Downloads a url that is expected to be a zipped folder.
     """
+
     r = requests.get(url, stream=True)
     z = zipfile.ZipFile(StringIO.StringIO(r.content))
     z.extractall('~/Downloads')
@@ -27,33 +28,78 @@ p.add_argument('-c','--cell_size', dest='cell_size',required=False, default=50,
 p.add_argument('-lf','--landfire', dest='landfire',required=False, action="store_true",
                 help="flag for what data type to use for vegetation maps")
 
-p.add_argument('-nl','--nlcdas', dest='landfire',required=False, action="store_true",
+p.add_argument('-nl','--nlcd', dest='landfire',required=False, action="store_true",
                 help="flag for what data type to use for vegetation maps")
+
+p.add_argument('-d','--download', dest='download',required=False, default='~/Downloads',
+                help="Location to check for veg data or download vegetation data")
+
+p.add_argument('-o','--output', dest='output',required=False, default='./output',
+                help="Location to output data")
 
 args = p.parse_args()
 
+msg = "SMRF Basin Setup"
+
+print("="*len(msg))
+print("SMRF Basin Setup")
+print("="*len(msg))
 #Check inputs
-if os.path.ifile(args.basin_shapefile):
+if os.path.isfile(args.basin_shapefile):
     shp_f = args.basin_shapefile
 else:
     raise IOError("Path to basin shapefile does not exist.\n %s" % args.basin_shapefile)
 
-#Reqeust to use landfire data
-if args.nlcd and args.landfire:
-    raise ValueError("USing both veg flags is not allowed,choose either landfire or nlcdas")
+if os.path.isdir(os.path.abspath(args.output)):
+    print("\nWARNING: Output folder exists, potential to overwrite files!")
+else:
+    print("\nMaking output folder...")
+    os.mkdir(os.path.abspath(args.output))
+
+if os.path.isdir(os.path.abspath(args.download)):
+    download_f = os.path.abspath(os.path.expanduser(args.download))
+else:
+    raise IOError("Path to vegetation data/download directory does not exist.\n %s" % args.download)
+
+
+#URLS for the latest data sets from online
+url_dict = {"landfire":['https://www.landfire.gov/bulk/downloadfile.php?FNAME=US_140_mosaic-US_140EVT_04252017.zip&TYPE=landfire',
+                        'https://www.landfire.gov/bulk/downloadfile.php?FNAME=US_140_mosaic-US_140EVH_12052016.zip&TYPE=landfire'],
+            "nlcd":['http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=nlcd_2011_landcover_2011_edition_2014_10_10.zip']}
+
+#Expected directory names post download
+f_dict = {"landfire":['US_140EVH_12052016','US_140EVT_04252017'],
+          "nlcd":['nlcd_2011_landcover_2011_edition_2014_10_10']}
+
 
 #Use the landfire data set
-elif args.landfire:
-    veg_height_url= \
-    "https://www.landfire.gov/bulk/downloadfile.php?FNAME=US_140_mosaic-US_140EVH_12052016.zip&TYPE=landfire"
+if args.landfire:
+    name='landfire'
+else:
+    name = 'nlcd'
 
+#Check to see if the data has been unzipped
+print("\nChecking for {0} data in {1}...".format(name, download_f))
 
-    veg_type_url= \
-    "https://www.landfire.gov/bulk/downloadfile.php?FNAME=US_140_mosaic-US_140EVH_12052016.zip&TYPE=landfire"
+#Cycle through all the downloads
+for i,f in enumerate(f_dict[name]):
+    print("Looking for: \n%s " % os.path.join(download_f,f))
+    if not os.path.isdir(os.path.join(download_f,f)):
 
+        #missing downloaded data
+        print("\nUnzipped folder not found, check for zipped folder.")
+        print("Looking for:\n %s" % os.path.join(download_f,f)+'.zip')
+        if not os.path.isfile(os.path.join(download_f,f)+'.zip'):
 
-elif args.nlcdas:
-    url = \
-    "http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=nlcd_2011_landcover_2011_edition_2014_10_10.zip"
+            #Zip file does not exist
+            print("\nNo data found!\nDownloading %s ..." % f)
+            print("This could take up to 20mins, so sit back and relax.")
+            download_zipped_url(url_dict[name][i])
 
-#Download the data for veg height, veg type
+        #Downloaded but not zipped
+        else:
+            print("\nZipped data found, unzipping...")
+            z = zipfile.ZipFile(os.path.join(download_f,f)+'.zip')
+            z.extractall(download_f)
+    else:
+        print("\n%s found!" % f)
