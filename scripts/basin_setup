@@ -6,6 +6,8 @@ import zipfile
 import StringIO
 import os
 import threading
+from subprocess import Popen, check_output
+
 
 def download_zipped_url(url):
     """
@@ -24,6 +26,10 @@ p.add_argument('-f','--basin_shapefile', dest='basin_shapefile',required=True,
 
 p.add_argument('-c','--cell_size', dest='cell_size',required=False, default=50,
                 help="Pixel size to use for the basin in meters")
+
+p.add_argument('-dm','--dem', dest='dem',required=True,
+                help="DEM file in geotiff")
+
 
 p.add_argument('-lf','--landfire', dest='landfire',required=False, action="store_true",
                 help="flag for what data type to use for vegetation maps")
@@ -44,11 +50,11 @@ msg = "SMRF Basin Setup"
 print("="*len(msg))
 print("SMRF Basin Setup")
 print("="*len(msg))
-#Check inputs
-if os.path.isfile(args.basin_shapefile):
-    shp_f = args.basin_shapefile
-else:
-    raise IOError("Path to basin shapefile does not exist.\n %s" % args.basin_shapefile)
+
+#==================== Check Inputs ======================= #
+for f in [args.basin_shapefile,args.dem]:
+    if not os.path.isfile(f):
+        raise IOError("Path does not exist.\n %s" % f)
 
 if os.path.isdir(os.path.abspath(args.output)):
     print("\nWARNING: Output folder exists, potential to overwrite files!")
@@ -56,13 +62,12 @@ else:
     print("\nMaking output folder...")
     os.mkdir(os.path.abspath(args.output))
 
-if os.path.isdir(os.path.abspath(args.download)):
+if os.path.isdir(os.path.abspath(os.path.expanduser(args.download))):
     download_f = os.path.abspath(os.path.expanduser(args.download))
 else:
     raise IOError("Path to vegetation data/download directory does not exist.\n %s" % args.download)
 
-
-#URLS for the latest data sets from online
+#====================Downloads======================= #
 url_dict = {"landfire":['https://www.landfire.gov/bulk/downloadfile.php?FNAME=US_140_mosaic-US_140EVT_04252017.zip&TYPE=landfire',
                         'https://www.landfire.gov/bulk/downloadfile.php?FNAME=US_140_mosaic-US_140EVH_12052016.zip&TYPE=landfire'],
             "nlcd":['http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=nlcd_2011_landcover_2011_edition_2014_10_10.zip']}
@@ -70,7 +75,6 @@ url_dict = {"landfire":['https://www.landfire.gov/bulk/downloadfile.php?FNAME=US
 #Expected directory names post download
 f_dict = {"landfire":['US_140EVH_12052016','US_140EVT_04252017'],
           "nlcd":['nlcd_2011_landcover_2011_edition_2014_10_10']}
-
 
 #Use the landfire data set
 if args.landfire:
@@ -83,7 +87,7 @@ print("\nChecking for {0} data in {1}...".format(name, download_f))
 
 #Cycle through all the downloads
 for i,f in enumerate(f_dict[name]):
-    print("Looking for: \n%s " % os.path.join(download_f,f))
+    print("\nLooking for: \n%s " % os.path.join(download_f,f))
     if not os.path.isdir(os.path.join(download_f,f)):
 
         #missing downloaded data
@@ -103,3 +107,16 @@ for i,f in enumerate(f_dict[name]):
             z.extractall(download_f)
     else:
         print("\n%s found!" % f)
+
+#==================== Processing ======================= #
+os.mkdir(os.path.join(args.output,"temp")) #Make a workspace folder and then remove it.
+TEMP = os.path.join(args.output,"temp")
+
+print("\nGetting DEM data info...")
+dem_info = check_output(['gdalinfo',args.dem])
+
+#Interchange file
+if args.basin_shapefile.split('.')[-1] == 'e00':
+    print("\nConverting E00 to shp...")
+    shp_out = args.output
+    check_output(['ogr2ogr',args.basin_shapefile.split('.')[0],args.basin_shapefile)
