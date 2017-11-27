@@ -109,14 +109,47 @@ for i,f in enumerate(f_dict[name]):
         print("\n%s found!" % f)
 
 #==================== Processing ======================= #
-os.mkdir(os.path.join(args.output,"temp")) #Make a workspace folder and then remove it.
-TEMP = os.path.join(args.output,"temp")
 
+
+#Setup a workspace
+TEMP = os.path.join(args.output,"temp")
+if not os.path.isdir(TEMP):
+    os.mkdir(os.path.join(args.output,"temp")) #Make a workspace folder and then remove it.
+
+#Get data loaded in
 print("\nGetting DEM data info...")
 dem_info = check_output(['gdalinfo',args.dem])
 
-#Interchange file
+#Interchange file option
 if args.basin_shapefile.split('.')[-1] == 'e00':
-    print("\nConverting E00 to shp...")
+    print("\nConverting e00 to shp...")
     shp_out = args.output
-    check_output(['ogr2ogr',args.basin_shapefile.split('.')[0],args.basin_shapefile)
+    check_output(['ogr2ogr',args.basin_shapefile.split('.')[0],args.basin_shapefile,'-overwrite'])
+    basin_shp = os.path.join(args.basin_shapefile.split('.')[0],'ARC.shp')
+else:
+    basin_shp = agrs.basin_shapefile
+
+print("\nRetrieving basin outline info...\n")
+basin_shp_info = check_output(['ogrinfo','-al',basin_shp])
+#Dump the basin projection
+proj_info_type = 'wkt_esri'
+TARGET_PRJ = os.path.join(TEMP,"target.{0}".format(proj_info_type))
+
+#info can grab from a directory and find the correct file.
+prj = check_output(['gdalsrsinfo', '-o', proj_info_type,
+              '{0}'.format(args.basin_shapefile.split('.')[0],TARGET_PRJ)])
+with open(TARGET_PRJ,'w+') as f:
+    f.write(prj)
+    f.close()
+
+#==================== SET UP THE DEM ======================= #
+REPROJECT_DEM = os.path.join(TEMP,'reproject_dem.tif')
+CLIPPED_DEM = os.path.join(TEMP,'clipped_dem.tif')
+
+print("Reprojecting DEM...")
+p = Popen(['gdalwarp', '-t_srs', TARGET_PRJ, args.dem, REPROJECT_DEM])
+p.wait()
+
+print("Clipping DEM...")
+c = Popen(["gdalwarp -cutline", basin_shp, "-crop_to_cutline", "-dstalpha", REPROJECT_DEM, CLIPPED_DEM])
+c.communicate()
