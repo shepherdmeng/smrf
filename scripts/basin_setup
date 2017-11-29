@@ -120,36 +120,31 @@ if not os.path.isdir(TEMP):
 print("\nGetting DEM data info...")
 dem_info = check_output(['gdalinfo',args.dem])
 
+shp_out = args.output
+
 #Interchange file option
 if args.basin_shapefile.split('.')[-1] == 'e00':
     print("\nConverting e00 to shp...")
-    shp_out = args.output
-    check_output(['ogr2ogr',args.basin_shapefile.split('.')[0],args.basin_shapefile,'-overwrite'])
-    basin_shp = os.path.join(args.basin_shapefile.split('.')[0],'ARC.shp')
+    basin_shp = args.basin_shapefile.split('.')[0]+'/PAL.shp'
+    a = Popen(['ogr2ogr','-f',"ESRI Shapefile",basin_shp, args.basin_shapefile,'-overwrite'])
+    a.wait()
 else:
-    basin_shp = agrs.basin_shapefile
+    basin_shp = args.basin_shapefile
 
 print("\nRetrieving basin outline info...\n")
-basin_shp_info = check_output(['ogrinfo','-al',basin_shp])
-#Dump the basin projection
-proj_info_type = 'wkt_esri'
-TARGET_PRJ = os.path.join(TEMP,"target.{0}".format(proj_info_type))
 
-#info can grab from a directory and find the correct file.
-prj = check_output(['gdalsrsinfo', '-o', proj_info_type,
-              '{0}'.format(args.basin_shapefile.split('.')[0],TARGET_PRJ)])
-with open(TARGET_PRJ,'w+') as f:
-    f.write(prj)
-    f.close()
+#General info for basin shape file
+basin_shp_info = check_output(['ogrinfo','-al',basin_shp])
 
 #==================== SET UP THE DEM ======================= #
-REPROJECT_DEM = os.path.join(TEMP,'reproject_dem.tif')
+REPROJECT_DEM = os.path.abspath(os.path.join(TEMP,'reproject_dem.tif'))
 CLIPPED_DEM = os.path.join(TEMP,'clipped_dem.tif')
 
-print("Reprojecting DEM...")
-p = Popen(['gdalwarp', '-t_srs', TARGET_PRJ, args.dem, REPROJECT_DEM])
+print("\nReprojecting DEM...")
+proj = basin_shp.split('.')[0]+'.prj'
+p = Popen(['gdalwarp','-dstnodata', '"NaN"','-t_srs', proj, args.dem, REPROJECT_DEM])
 p.wait()
 
-print("Clipping DEM...")
-c = Popen(["gdalwarp -cutline", basin_shp, "-crop_to_cutline", "-dstalpha", REPROJECT_DEM, CLIPPED_DEM])
-c.communicate()
+print("\nClipping DEM...")
+c = Popen(["gdalwarp","-overwrite" ,'-cutline', basin_shp,'-crop_to_cutline', REPROJECT_DEM, CLIPPED_DEM])
+c.wait()
