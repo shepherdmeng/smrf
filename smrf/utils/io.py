@@ -9,11 +9,7 @@ import os
 from collections import Sequence
 from smrf import __core_config__, __version__
 import sys
-#Python 3 troubles and hack
-if sys.version_info[0] >= 3:
-    from ..utils import utils
-else:
-    import utils
+from smrf.utils import utils
 
 from .pycompat import OrderedDict, SafeConfigParser, basestring, unicode_type
 from datetime import date
