@@ -121,8 +121,14 @@ class wind(image_data.image_data):
             tempDir = os.environ['WORKDIR']
         self.tempDir = tempDir
 
+        self.gridded = False
+        self.point_model = False
+        
         if windConfig['distribution'] == 'grid':
             self.gridded = True
+
+        elif windConfig['distribution'] == 'point':
+            self.point_model = True
 
         else:
             # open the maxus netCDF
@@ -169,7 +175,7 @@ class wind(image_data.image_data):
             self.config['peak'] = [self.config['peak']]
         self._initialize(topo, data.metadata)
 
-        if not self.gridded:
+        if not self.gridded and not self.point_model:
             self.veg_type = topo.veg_type
 
             # get the enhancements for the stations
@@ -228,11 +234,17 @@ class wind(image_data.image_data):
             az = np.arctan2(self.u_direction_distributed,
                             self.v_direction_distributed)*180/np.pi
             az[az < 0] = az[az < 0] + 360
-            self.wind_direction = az
+             = az
 
             self.wind_speed = utils.set_min_max(self.wind_speed,
                                                 self.min,
                                                 self.max)
+
+        elif self.point_model:
+            data_speed = np.array(data_speed[self.stations].values[0])
+            self.wind_speed = utlist.set_min_max(data_speed,
+                                                 self.min, self.max)
+            self.wind_direction = np.array(0.0)
 
         else:
             # calculate the maxus at each site

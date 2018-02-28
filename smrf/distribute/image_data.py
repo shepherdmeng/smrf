@@ -148,6 +148,9 @@ class image_data():
             self.grid = grid.GRID(self.config, self.mx, self.my, topo.X, topo.Y, mz=self.mz,
                                   GridZ=topo.dem, mask=topo.mask)
 
+        elif self.config['distribution'] == 'point':
+            pass
+
         else:
             raise Exception("Could not determine the distribution method for "
                             "{}".format(self.variable))
@@ -194,6 +197,9 @@ class image_data():
             else:
                 v = self.grid.calculateInterpolation(data.values,
                                                      self.config['method'])
+
+        elif self.config['distribution'] == 'point':
+            v = np.array(data.values[0])
 
         if other_attribute is not None:
             setattr(self, other_attribute, v)

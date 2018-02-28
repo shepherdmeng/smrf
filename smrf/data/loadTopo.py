@@ -7,6 +7,32 @@ from multiprocessing import Process
 import os
 import logging
 
+class point():
+    """
+    Similar to topo class but just at one point
+    """
+    images = [veg_height', 'veg_k', 'veg_tau']
+
+    def __init__(self, topoConfig):
+        self.topoConfig = topoConfig
+
+        self._logger = logging.getLogger(__name__)
+        self._logger.info('Reading [TOPO] for point')
+
+        self.ny = 1
+        self.nx = 1
+        self.u = topoconfig['u']
+        self.v = topoconfig['v']
+        self.du = -1
+        self.dv = 1
+        self.dem = np.array(topoconfig['elevation'])
+        self.units = 'm'
+        self.veg_type = np.array(int(topoconfig['point_veg_type']))
+        for v in self.images:
+            setattr(self, v, np.array(topoconfig['point_'+v]))
+
+        # create the x,y vectors
+        [self.X, self.Y] = np.meshgrid(self.x, self.y)
 
 class topo():
     """

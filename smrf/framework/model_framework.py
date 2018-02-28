@@ -194,6 +194,16 @@ class SMRF():
         #After writing update the paths to be full abs paths.
         self.config = io.update_config_paths(self.config, configFile)
 
+        # cast stations to list
+        section_filt = ['stations', 'air_temp', 'precip', 'wind', 'solar', 'vapor_pressure']
+        for sf in section_filt:
+            # if self.config['stations']['stations'] is not None and type(self.config['stations']['stations']) != list:
+            #     self.config['stations']['stations'] = [self.config['stations']['stations'].upper()]
+            if self.config[sf]['stations'] is not None and type(self.config[sf]['stations']) != list:
+                self.config[sf]['stations'] = [self.config[sf]['stations'].upper()]
+            # if self.config['wind']['stations'] is not None and type(self.config['wind']['stations']) != list:
+            #     self.config['wind']['stations'] = [self.config['wind']['stations'].upper()]
+            #print(self.config['stations']['stations'].upper())
         # process the system variables
         for k,v in self.config['system'].items():
             setattr(self,k,v)
@@ -276,6 +286,8 @@ class SMRF():
         self.topo = data.loadTopo.topo(self.config['topo'],
                                        calcInput,
                                        tempDir=self.temp_dir)
+
+        self.topo = data.loadTopo.point(self.config['topo'])
 
     def initializeDistribution(self):
         """
@@ -525,10 +537,15 @@ class SMRF():
             # 0.2 illumination angle
             illum_ang = None
             if cosz > 0:
-                illum_ang = radiation.shade(self.topo.slope,
-                                            self.topo.aspect,
-                                            azimuth,
-                                            cosz)
+                if not self.point:
+                    illum_ang = radiation.shade(self.topo.slope,
+                                                self.topo.aspect,
+                                                azimuth,
+                                                cosz)
+                else:
+                    slopeaspect = np.array(0.0)
+                    illum_ang = radaition.shade(slopeaspect, slopeaspect
+                                                azimuth, cosz)
 
             # 1. Air temperature
             self.distribute['air_temp'].distribute(self.data.air_temp.loc[t])

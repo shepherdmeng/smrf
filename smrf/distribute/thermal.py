@@ -236,6 +236,11 @@ class th(image_data.image_data):
         self.sky_view = topo.sky_view
         if not self.correct_terrain:
             self.sky_view = None
+
+        self.point_model = False
+        if self.config['distribution'] == 'point'
+            self.point_model = True
+            self.sky_view = None
         self.dem = topo.dem
 
     def distribute(self, date_time, air_temp, vapor_pressure=None,

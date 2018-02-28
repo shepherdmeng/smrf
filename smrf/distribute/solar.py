@@ -224,6 +224,11 @@ class solar(image_data.image_data):
         self.ir_file = os.path.join(self.tempDir, 'clearsky_ir.ipw')
         self.vis_file = os.path.join(self.tempDir, 'clearsky_vis.ipw')
 
+        if self.albedoConfig['distribution'] == 'point'
+            self.point_model = True
+        else:
+            self.point_model = False
+
         self._logger.debug('Created distribute.solar')
 
     def initialize(self, topo, data):
@@ -593,7 +598,8 @@ class solar(image_data.image_data):
         self.net_solar = vv_n + vir_n
         self.net_solar = utils.set_min_max(self.net_solar, self.min, self.max)
 
-    def calc_ir(self, min_storm_day, wy_day, tz_min_west, wyear, cosz, azimuth):
+    def calc_ir(self, min_storm_day, wy_day, tz_min_west, wyear,
+                cosz, azimuth, dt):
         """
         Run ``stoporad`` for the infrared bands
 
@@ -610,40 +616,83 @@ class solar(image_data.image_data):
                 :mod:`smrf.envphys.radiation.sunang`
             azimuth: azimuth to the sun for the basin, from
                 :mod:`smrf.envphys.radiation.sunang`
+            dt: pandas date_time instance for use in solar function if
+                running point model
         """
         self._logger.debug('Calculating clear sky radiation, ir')
 
-        ir_cmd = 'stoporad -z %i -t %s -w %s -g %s -x 0.7,2.8 -s %s'\
-            ' -d %s -f %i -y %i -A %f,%f -a %i -m %i -c %i -D %s > %s' \
-            % (self.config['clear_opt_depth'],
-               str(self.config['clear_tau']),
-               str(self.config['clear_omega']),
-               str(self.config['clear_gamma']),
-               str(min_storm_day),
-               str(wy_day),
-               tz_min_west, wyear,
-               cosz, azimuth,
-               self.albedoConfig['grain_size'],
-               self.albedoConfig['max_grain'],
-               self.albedoConfig['dirt'],
-               self.stoporad_in,
-               self.ir_file)
+        if not self.point_model:
+            ir_cmd = 'stoporad -z %i -t %s -w %s -g %s -x 0.7,2.8 -s %s'\
+                ' -d %s -f %i -y %i -A %f,%f -a %i -m %i -c %i -D %s > %s' \
+                % (self.config['clear_opt_depth'],
+                   str(self.config['clear_tau']),
+                   str(self.config['clear_omega']),
+                   str(self.config['clear_gamma']),
+                   str(min_storm_day),
+                   str(wy_day),
+                   tz_min_west, wyear,
+                   cosz, azimuth,
+                   self.albedoConfig['grain_size'],
+                   self.albedoConfig['max_grain'],
+                   self.albedoConfig['dirt'],
+                   self.stoporad_in,
+                   self.ir_file)
 
-#         self._logger.debug(ir_cmd)
+            irp = sp.Popen(ir_cmd,
+                          shell=True,
+                          env={"PATH": os.environ['PATH'],
+                               "WORKDIR": os.environ['WORKDIR']})
 
-        irp = sp.Popen(ir_cmd,
-                       shell=True,
-                       env={"PATH": os.environ['PATH'],
-                            "WORKDIR": os.environ['WORKDIR']})
+            stdoutdata, stderrdata = irp.communicate()
 
-        stdoutdata, stderrdata = irp.communicate()
+            if irp.returncode != 0:
+               raise Exception('Clear sky for IR failed')
 
-        if irp.returncode != 0:
-            raise Exception('Clear sky for IR failed')
+            ir = ipw.IPW(self.ir_file)
+            clear_ir_beam = ir.bands[0].data
+            clear_ir_diffuse = ir.bands[1].data
 
-        ir = ipw.IPW(self.ir_file)
-        clear_ir_beam = ir.bands[0].data
-        clear_ir_diffuse = ir.bands[1].data
+        # run stoporad at a single point
+        else:
+            solar_date = dt.strftime('%Y,%m,%d')
+            solar_cmd = 'solar -w 0.7,2.8 -d %s' % (solar_date)
+            irp = sp.Popen(solar_cmd,
+                           shell=True, stdout=sp.PIPE,
+                           stderr=sp.PIPE,
+                           env={"PATH": os.environ['PATH'],
+                                "WORKDIR": os.environ['WORKDIR']})
+
+            stdoutdata, stderrdata = irp.communicate()
+            if irp.returncode != 0:
+                raise Exception('Solar ipw command failed')
+
+            tmp_solar = float(str(stdoutdata).split(' ')[0])
+
+            ts_cmd = 'twostream -u %f -0 -t %s -w %s -g %s -r %f -s %f'\
+                     % (cosz, str(self.config['clear_tau']), \
+                        str(self.config['clear_omega']),
+                        str(self.config['clear_gamma']),
+                        0.5, tmp_solar)
+
+            irp = sp.Popen(ts_cmd,
+                           shell=True, stdout=sp.PIPE,
+                           stderr=sp.PIPE,
+                           env={"PATH": os.environ['PATH'],
+                                "WORKDIR": os.environ['WORKDIR']})
+
+            stdoutdata, stderrdata = irp.communicate()
+            if irp.returncode != 0:
+                raise Exception('Two stream command failed')
+
+            # split output to get correct value
+            ts_string = [f for f in stdoutdata.split('\n') if 'total irradiance at bottom' in f]
+            # get the number and cast to float
+            ir_beam = ts_string[0].split(' ')[4]
+            ir_beam = float(clear_ir)
+
+            # get total irradiance at bottom
+            clear_ir_beam = np.array(ir_beam)
+            clear_ir_diffuse = np.array(0.0)
 
         return clear_ir_beam, clear_ir_diffuse
 
@@ -667,39 +716,81 @@ class solar(image_data.image_data):
         """
         self._logger.debug('Calculating clear sky radiation, visible')
 
-        vis_cmd = 'stoporad -z %i -t %s -w %s -g %s -x 0.28,0.7 -s %s'\
-            ' -d %s -f %i -y %i -A %f,%f -a %i -m %i -c %i -D %s > %s' \
-            % (self.config['clear_opt_depth'],
-               str(self.config['clear_tau']),
-               str(self.config['clear_omega']),
-               str(self.config['clear_gamma']),
-               str(min_storm_day),
-               str(wy_day),
-               tz_min_west,
-               wyear,
-               cosz,
-               azimuth,
-               self.albedoConfig['grain_size'],
-               self.albedoConfig['max_grain'],
-               self.albedoConfig['dirt'],
-               self.stoporad_in,
-               self.vis_file)
-#         self._logger.debug(vis_cmd)
+        if not self.point_model
+            vis_cmd = 'stoporad -z %i -t %s -w %s -g %s -x 0.28,0.7 -s %s'\
+                ' -d %s -f %i -y %i -A %f,%f -a %i -m %i -c %i -D %s > %s' \
+                % (self.config['clear_opt_depth'],
+                   str(self.config['clear_tau']),
+                   str(self.config['clear_omega']),
+                   str(self.config['clear_gamma']),
+                   str(min_storm_day),
+                   str(wy_day),
+                   tz_min_west,
+                   wyear,
+                   cosz,
+                   azimuth,
+                   self.albedoConfig['grain_size'],
+                   self.albedoConfig['max_grain'],
+                   self.albedoConfig['dirt'],
+                   self.stoporad_in,
+                   self.vis_file)
+    #         self._logger.debug(vis_cmd)
 
-        visp = sp.Popen(vis_cmd,
-                        shell=True,
-                        env={"PATH": os.environ['PATH'],
-                             "WORKDIR": os.environ['WORKDIR']})
+            visp = sp.Popen(vis_cmd,
+                            shell=True,
+                            env={"PATH": os.environ['PATH'],
+                                 "WORKDIR": os.environ['WORKDIR']})
 
-        stdoutdata, stderrdata = visp.communicate()
+            stdoutdata, stderrdata = visp.communicate()
 
-        if visp.returncode != 0:
-            raise Exception('Clear sky for visible failed')
+            if visp.returncode != 0:
+                raise Exception('Clear sky for visible failed')
 
-        # load clear sky files back in
-        vis = ipw.IPW(self.vis_file)
-        clear_vis_beam = vis.bands[0].data
-        clear_vis_diffuse = vis.bands[1].data
+            # load clear sky files back in
+            vis = ipw.IPW(self.vis_file)
+            clear_vis_beam = vis.bands[0].data
+            clear_vis_diffuse = vis.bands[1].data
+
+        else:
+            solar_date = dt.strftime('%Y,%m,%d')
+            solar_cmd = 'solar -w 0.28,0.7 -d %s' % (solar_date)
+            irp = sp.Popen(solar_cmd,
+                           shell=True, stdout=sp.PIPE,
+                           stderr=sp.PIPE,
+                           env={"PATH": os.environ['PATH'],
+                                "WORKDIR": os.environ['WORKDIR']})
+
+            stdoutdata, stderrdata = irp.communicate()
+            if irp.returncode != 0:
+                raise Exception('Solar ipw command failed')
+
+            tmp_solar = float(str(stdoutdata).split(' ')[0])
+
+            ts_cmd = 'twostream -u %f -0 -t %s -w %s -g %s -r %f -s %f'\
+                     % (cosz, str(self.config['clear_tau']), \
+                        str(self.config['clear_omega']),
+                        str(self.config['clear_gamma']),
+                        0.5, tmp_solar)
+
+            irp = sp.Popen(ts_cmd,
+                           shell=True, stdout=sp.PIPE,
+                           stderr=sp.PIPE,
+                           env={"PATH": os.environ['PATH'],
+                                "WORKDIR": os.environ['WORKDIR']})
+
+            stdoutdata, stderrdata = irp.communicate()
+            if irp.returncode != 0:
+                raise Exception('Two stream command failed')
+
+            # split output to get correct value
+            ts_string = [f for f in stdoutdata.split('\n') if 'total irradiance at bottom' in f]
+            # get the number and cast to float
+            vis_beam = ts_string[0].split(' ')[4]
+            vis_beam = float(clear_ir)
+
+            # get total irradiance at bottom
+            clear_vis_beam = np.array(vis_beam)
+            clear_vis_diffuse = np.array(0.0)
 
         return clear_vis_beam, clear_vis_diffuse
 
