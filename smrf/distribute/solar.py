@@ -206,7 +206,7 @@ class solar(image_data.image_data):
     post_process_variables = {}
 
     def __init__(self, solarConfig, albedoConfig, stoporad_in,
-                 tempDir=None, point_model):
+                 tempDir=None, point_model=False):
 
         # extend the base class
         image_data.image_data.__init__(self, self.variable)
@@ -714,7 +714,7 @@ class solar(image_data.image_data):
         """
         self._logger.debug('Calculating clear sky radiation, visible')
 
-        if not self.point_model
+        if not self.point_model:
             vis_cmd = 'stoporad -z %i -t %s -w %s -g %s -x 0.28,0.7 -s %s'\
                 ' -d %s -f %i -y %i -A %f,%f -a %i -m %i -c %i -D %s > %s' \
                 % (self.config['clear_opt_depth'],

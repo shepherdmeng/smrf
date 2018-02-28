@@ -240,7 +240,7 @@ class SMRF():
 
         # check if running point model
         self.point_model = False
-        if self.config['topo']['type'] = 'point':
+        if self.config['topo']['type'] == 'point':
             self.point_model = True
 
         self.distribute = {}
@@ -346,7 +346,7 @@ class SMRF():
 
         # 7. thermal radiation
         self.distribute['thermal'] = \
-            distribute.thermal.th(self.config['thermal'])
+            distribute.thermal.th(self.config['thermal'], self.point_model)
 
         # 8. soil temperature
         self.distribute['soil_temp'] = \
@@ -542,15 +542,10 @@ class SMRF():
             # 0.2 illumination angle
             illum_ang = None
             if cosz > 0:
-                if not self.point:
-                    illum_ang = radiation.shade(self.topo.slope,
-                                                self.topo.aspect,
-                                                azimuth,
-                                                cosz)
-                else:
-                    slopeaspect = np.array(0.0)
-                    illum_ang = radaition.shade(slopeaspect, slopeaspect
-                                                azimuth, cosz)
+                illum_ang = radiation.shade(self.topo.slope,
+                                            self.topo.aspect,
+                                            azimuth,
+                                            cosz)
 
             # 1. Air temperature
             self.distribute['air_temp'].distribute(self.data.air_temp.loc[t])

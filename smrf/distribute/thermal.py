@@ -188,7 +188,7 @@ class th(image_data.image_data):
     # be written during main distribute loop
     post_process_variables = {}
 
-    def __init__(self, thermalConfig):
+    def __init__(self, thermalConfig, point_model):
 
         # extend the base class
         image_data.image_data.__init__(self, self.variable)
@@ -203,6 +203,8 @@ class th(image_data.image_data):
         self.cloud_method = self.config['cloud_method']
         self.correct_veg = self.config['correct_veg']
         self.correct_terrain = self.config['correct_terrain']
+
+        self.point_model = point_model
 
         self._logger.debug('Created distribute.thermal')
 
@@ -237,10 +239,9 @@ class th(image_data.image_data):
         if not self.correct_terrain:
             self.sky_view = None
 
-        self.point_model = False
-        if self.config['distribution'] == 'point'
-            self.point_model = True
+        if self.point_model:
             self.sky_view = None
+
         self.dem = topo.dem
 
     def distribute(self, date_time, air_temp, vapor_pressure=None,

@@ -123,7 +123,7 @@ class wind(image_data.image_data):
 
         self.gridded = False
         self.point_model = False
-        
+
         if windConfig['distribution'] == 'grid':
             self.gridded = True
 
@@ -234,7 +234,7 @@ class wind(image_data.image_data):
             az = np.arctan2(self.u_direction_distributed,
                             self.v_direction_distributed)*180/np.pi
             az[az < 0] = az[az < 0] + 360
-             = az
+            self.wind_direction = az
 
             self.wind_speed = utils.set_min_max(self.wind_speed,
                                                 self.min,

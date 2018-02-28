@@ -11,7 +11,7 @@ class point():
     """
     Similar to topo class but just at one point
     """
-    images = [veg_height', 'veg_k', 'veg_tau']
+    images = ['veg_height', 'veg_k', 'veg_tau']
 
     def __init__(self, topoConfig):
         self.topoConfig = topoConfig
@@ -21,20 +21,25 @@ class point():
 
         self.ny = 1
         self.nx = 1
-        self.u = topoconfig['u']
-        self.v = topoconfig['v']
+        self.u = topoConfig['u']
+        self.v = topoConfig['v']
         self.du = -1
         self.dv = 1
         #self.dem = np.array(topoconfig['elevation'])
         #self.units = 'm'
-        self.veg_type = np.array(int(topoconfig['point_veg_type']))
+        self.veg_type = np.array(int(topoConfig['point_veg_type']))
         for v in self.images:
-            setattr(self, v, np.array(topoconfig['point_'+v]))
+            setattr(self, v, np.array(topoConfig['point_'+v]))
 
         self.x = np.array(self.v)
         self.y = np.array(self.u)
         # create the x,y vectors
         [self.X, self.Y] = np.meshgrid(self.x, self.y)
+
+        self.slope = np.array(0.0)
+        self.aspect = np.array(0.0)
+
+        self.stoporad_in_file = None
 
 class topo():
     """

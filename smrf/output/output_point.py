@@ -76,7 +76,7 @@ class output_point():
         self.variable_list[variable]['values'][time == date_time] = data[0]
 
         # output csv if this is the last time step
-        if date_time == time[-1]
+        if date_time == time[-1]:
             fp = variable_list[variable]['file_name']
             self.variable_list[variable]['df'][variable] = self.variable_list[variable]['values']
-            self.variable_list[variable]['df'].to_csv[fp, index = False]
+            self.variable_list[variable]['df'].to_csv(fp, index=False)
