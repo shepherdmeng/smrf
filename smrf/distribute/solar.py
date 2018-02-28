@@ -205,7 +205,8 @@ class solar(image_data.image_data):
     # be written during main distribute loop
     post_process_variables = {}
 
-    def __init__(self, solarConfig, albedoConfig, stoporad_in, tempDir=None):
+    def __init__(self, solarConfig, albedoConfig, stoporad_in,
+                 tempDir=None, point_model):
 
         # extend the base class
         image_data.image_data.__init__(self, self.variable)
@@ -224,10 +225,7 @@ class solar(image_data.image_data):
         self.ir_file = os.path.join(self.tempDir, 'clearsky_ir.ipw')
         self.vis_file = os.path.join(self.tempDir, 'clearsky_vis.ipw')
 
-        if self.albedoConfig['distribution'] == 'point'
-            self.point_model = True
-        else:
-            self.point_model = False
+        self.point_model = point_model
 
         self._logger.debug('Created distribute.solar')
 

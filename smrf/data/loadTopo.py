@@ -25,12 +25,14 @@ class point():
         self.v = topoconfig['v']
         self.du = -1
         self.dv = 1
-        self.dem = np.array(topoconfig['elevation'])
-        self.units = 'm'
+        #self.dem = np.array(topoconfig['elevation'])
+        #self.units = 'm'
         self.veg_type = np.array(int(topoconfig['point_veg_type']))
         for v in self.images:
             setattr(self, v, np.array(topoconfig['point_'+v]))
 
+        self.x = np.array(self.v)
+        self.y = np.array(self.u)
         # create the x,y vectors
         [self.X, self.Y] = np.meshgrid(self.x, self.y)
 

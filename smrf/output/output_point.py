@@ -78,4 +78,5 @@ class output_point():
         # output csv if this is the last time step
         if date_time == time[-1]
             fp = variable_list[variable]['file_name']
+            self.variable_list[variable]['df'][variable] = self.variable_list[variable]['values']
             self.variable_list[variable]['df'].to_csv[fp, index = False]

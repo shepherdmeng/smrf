@@ -238,6 +238,10 @@ class SMRF():
             self.day_hour = self.start_date - pd.to_datetime(d[0].strftime("%Y%m%d"))
             self.day_hour = int(self.day_hour / np.timedelta64(1, 'h'))
 
+        # check if running point model
+        self.point_model = False
+        if self.config['topo']['type'] = 'point':
+            self.point_model = True
 
         self.distribute = {}
 
@@ -283,11 +287,12 @@ class SMRF():
         """
 
         # load the topo
-        self.topo = data.loadTopo.topo(self.config['topo'],
-                                       calcInput,
-                                       tempDir=self.temp_dir)
-
-        self.topo = data.loadTopo.point(self.config['topo'])
+        if not self.point_model:
+            self.topo = data.loadTopo.topo(self.config['topo'],
+                                           calcInput,
+                                           tempDir=self.temp_dir)
+        else:
+            self.topo = data.loadTopo.point(self.config['topo'])
 
     def initializeDistribution(self):
         """
@@ -337,7 +342,7 @@ class SMRF():
             distribute.solar.solar(self.config['solar'],
                                    self.distribute['albedo'].config,
                                    self.topo.stoporad_in_file,
-                                   self.temp_dir)
+                                   self.temp_dir, self.point_model)
 
         # 7. thermal radiation
         self.distribute['thermal'] = \
