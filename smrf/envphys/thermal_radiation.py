@@ -60,7 +60,8 @@ def thermal_correct_terrain(th, ta, viewf):
     return viewf * th + (1 - viewf) * terrain
 
 
-def thermal_correct_canopy(th, ta, tau, veg_height, height_thresh=2):
+def thermal_correct_canopy(th, ta, tau, veg_height,
+                           point_model, height_thresh=2):
     """
     Correct thermal radiation for vegitation.  It will only correct
     for pixels where the veg height is above a threshold. This ensures
@@ -90,7 +91,11 @@ def thermal_correct_canopy(th, ta, tau, veg_height, height_thresh=2):
     ind = veg_height > height_thresh
 
     # correct incoming thermal
-    th[ind] = tau[ind] * th[ind] + (1 - tau[ind]) * veg[ind]
+    if point_model:
+        th = tau * th + (1 - tau) * veg
+        th = np.array(th)
+    else:
+        th[ind] = tau[ind] * th[ind] + (1 - tau[ind]) * veg[ind]
 
     return th
 

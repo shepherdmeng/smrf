@@ -25,7 +25,9 @@ class point():
         self.v = topoConfig['v']
         self.du = -1
         self.dv = 1
-        #self.dem = np.array(topoconfig['elevation'])
+        self.dem = np.array(1.0)
+        self.sky_view = None
+        self.mask = np.array(1.0)
         #self.units = 'm'
         self.veg_type = np.array(int(topoConfig['point_veg_type']))
         for v in self.images:

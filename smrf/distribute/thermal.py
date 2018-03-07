@@ -205,6 +205,8 @@ class th(image_data.image_data):
         self.correct_terrain = self.config['correct_terrain']
 
         self.point_model = point_model
+        if self.point_model and self.method == "marks1979":
+            raise ValueError('Cannot run point model and marks1979 thermal method together')
 
         self._logger.debug('Created distribute.thermal')
 
@@ -322,7 +324,8 @@ class th(image_data.image_data):
             cth = thermal_radiation.thermal_correct_canopy(cth,
                                                            air_temp,
                                                            self.veg_tau,
-                                                           self.veg_height)
+                                                           self.veg_height,
+                                                           self.point_model)
 
             # make output variable
             self.thermal_veg = cth.copy()

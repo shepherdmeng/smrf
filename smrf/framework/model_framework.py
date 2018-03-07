@@ -545,6 +545,7 @@ class SMRF():
                 illum_ang = radiation.shade(self.topo.slope,
                                             self.topo.aspect,
                                             azimuth,
+                                            self.point_model,
                                             cosz)
 
             # 1. Air temperature

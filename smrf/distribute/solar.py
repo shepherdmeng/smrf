@@ -305,7 +305,7 @@ class solar(image_data.image_data):
             # not all the clean but it will work for now
             val_beam, val_diffuse = self.calc_ir(min_storm_day, wy_day,
                                                  tz_min_west, wyear, cosz,
-                                                 azimuth)
+                                                 azimuth, data.name)
             setattr(self, 'clear_ir_beam', val_beam)
             setattr(self, 'clear_ir_diffuse', val_diffuse)
             self.ir_beam = val_beam.copy()
@@ -313,7 +313,7 @@ class solar(image_data.image_data):
 
             val_beam, val_diffuse = self.calc_vis(min_storm_day, wy_day,
                                                   tz_min_west, wyear, cosz,
-                                                  azimuth)
+                                                  azimuth, data.name)
             setattr(self, 'clear_vis_beam', val_beam)
             setattr(self, 'clear_vis_diffuse', val_diffuse)
             self.vis_beam = val_beam.copy()
@@ -526,11 +526,13 @@ class solar(image_data.image_data):
         self._logger.debug('Correcting clear sky radiation for clouds')
         self.vis_beam, self.vis_diffuse = radiation.cf_cloud(self.vis_beam,
                                                                          self.vis_diffuse,
-                                                                         self.cloud_factor)
+                                                                         self.cloud_factor,
+                                                                         self.point_model)
 
         self.ir_beam, self.ir_diffuse = radiation.cf_cloud(self.ir_beam,
                                                                        self.ir_diffuse,
-                                                                       self.cloud_factor)
+                                                                       self.cloud_factor,
+                                                                       self.point_model)
 
     def veg_correct(self, illum_ang):
         """
@@ -686,7 +688,7 @@ class solar(image_data.image_data):
             ts_string = [f for f in stdoutdata.split('\n') if 'total irradiance at bottom' in f]
             # get the number and cast to float
             ir_beam = ts_string[0].split(' ')[4]
-            ir_beam = float(clear_ir)
+            ir_beam = float(ir_beam)
 
             # get total irradiance at bottom
             clear_ir_beam = np.array(ir_beam)
@@ -694,7 +696,7 @@ class solar(image_data.image_data):
 
         return clear_ir_beam, clear_ir_diffuse
 
-    def calc_vis(self, min_storm_day, wy_day, tz_min_west, wyear, cosz, azimuth):
+    def calc_vis(self, min_storm_day, wy_day, tz_min_west, wyear, cosz, azimuth, dt):
         """
         Run ``stoporad`` for the visible bands
 
@@ -784,7 +786,7 @@ class solar(image_data.image_data):
             ts_string = [f for f in stdoutdata.split('\n') if 'total irradiance at bottom' in f]
             # get the number and cast to float
             vis_beam = ts_string[0].split(' ')[4]
-            vis_beam = float(clear_ir)
+            vis_beam = float(vis_beam)
 
             # get total irradiance at bottom
             clear_vis_beam = np.array(vis_beam)

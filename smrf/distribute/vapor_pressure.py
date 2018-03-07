@@ -68,6 +68,10 @@ class vp(image_data.image_data):
         # check and assign the configuration
         self.getConfig(vpConfig)
 
+        self.point_model = False
+        if self.config['distribution'] == 'point':
+            self.point_model = True
+
         self._logger.debug('Created distribute.vapor_pressure')
 
     def initialize(self, topo, data):
@@ -119,12 +123,22 @@ class vp(image_data.image_data):
         # calculate the dew point
         self._logger.debug('%s -- Calculating dew point' % data.name)
 
+        # get through the casting to c types in the cython code by
+        # changing the shapes briefly
+        if self.point_model:
+            self.vapor_pressure = self.vapor_pressure*np.ones((2,2))
+
         # use the core_c to calculate the dew point
         dpt = np.zeros_like(self.vapor_pressure, dtype=np.float64)
         envphys_c.cdewpt(self.vapor_pressure,
                          dpt,
                          self.config['tolerance'],
                          self.config['nthreads'])
+
+        # resize to 1x1 or point model
+        if self.point_model:
+            self.vapor_pressure = np.array(self.vapor_pressure[0,0])
+            dpt = np.array(dpt[0,0])
 
         # find where dpt > ta
         ind = dpt >= ta

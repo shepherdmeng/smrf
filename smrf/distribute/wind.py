@@ -242,7 +242,7 @@ class wind(image_data.image_data):
 
         elif self.point_model:
             data_speed = np.array(data_speed[self.stations].values[0])
-            self.wind_speed = utlist.set_min_max(data_speed,
+            self.wind_speed = utils.set_min_max(data_speed,
                                                  self.min, self.max)
             self.wind_direction = np.array(0.0)
 

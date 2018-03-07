@@ -114,6 +114,9 @@ class ppt(image_data.image_data):
         self.getConfig(pptConfig)
         self.time_step = float(time_step)
         self.start_date = start_date
+        self.point_model = False
+        if self.config['distribution'] == 'point':
+            self.point_model = True
 
     def initialize(self, topo, data):
 

@@ -8,7 +8,8 @@ import logging
 import os
 from datetime import datetime
 from smrf.utils import utils
-# import pandas as pd
+import pandas as pd
+import pytz
 
 from smrf import __version__
 
@@ -25,8 +26,10 @@ class output_point():
         Initialize the output_netcdf() class
 
         Args:
-            variable_list: list of dicts, one for each variable
-            topo: loadTopo instance
+        variable_list: dictionary of variable information
+        time: numpy array of datetimes
+        outConfig: output section dictionary of smrf config
+
         """
 
         self._logger = logging.getLogger(__name__)
@@ -39,7 +42,6 @@ class output_point():
         self.variable_list = variable_list
 
         # process the time section
-        self.run_time_step = int(time['time_step'])
         self.out_frequency = int(outConfig['frequency'])
         self.outConfig = outConfig
 
@@ -47,7 +49,7 @@ class output_point():
 
             f = self.variable_list[v]
             self.variable_list[v]['df'] = pd.DataFrame(columns=['date_time', v])
-            self.variable_list[v]['values'] = np.zeros_like((len(time),1))
+            self.variable_list[v]['values'] = np.zeros((len(time)))
             self.variable_list[v]['df']['date_time'] = time
             if os.path.isfile(f['file_name']):
                 self._logger.warning('Opening {}, data may be overwritten!'
@@ -69,14 +71,26 @@ class output_point():
         self._logger.debug('{0} Storing variable {1}'
                            .format(date_time, variable))
 
-        if len(data) > 1:
-            raise ValueError('Data is not in point format, cannot store output')
+        data = np.array(data)
 
-        time = self.variable_list[variable]['df']['date_time']
-        self.variable_list[variable]['values'][time == date_time] = data[0]
+        time = self.variable_list[variable]['df']['date_time'].values
+        tzinfo = pytz.timezone('UTC')
+        date_time = np.datetime64(date_time.replace(tzinfo=tzinfo))
 
+        data = np.array(data)
+        datatype = type(data)
+        try:
+            data = data[0][0]
+        except:
+            pass
+
+        if variable == 'net_solar' and np.any(np.isnan(data)):
+            data = np.array(0.0)
+
+        #print(self.variable_list[variable]['values'])
+        self.variable_list[variable]['values'][time == date_time] = data
         # output csv if this is the last time step
         if date_time == time[-1]:
-            fp = variable_list[variable]['file_name']
+            fp = self.variable_list[variable]['file_name']
             self.variable_list[variable]['df'][variable] = self.variable_list[variable]['values']
             self.variable_list[variable]['df'].to_csv(fp, index=False)
