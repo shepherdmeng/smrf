@@ -79,13 +79,16 @@ class output_point():
 
         data = np.array(data)
         datatype = type(data)
+        # print(variable)
+        # print(data)
         try:
             data = data[0][0]
         except:
+            # print('Nope')
             pass
 
         if variable == 'net_solar' and np.any(np.isnan(data)):
-            data = np.array(0.0)
+            data = np.array(0.0)*np.ones((1,1))
 
         #print(self.variable_list[variable]['values'])
         self.variable_list[variable]['values'][time == date_time] = data

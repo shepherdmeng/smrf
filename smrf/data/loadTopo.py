@@ -25,21 +25,21 @@ class point():
         self.v = topoConfig['v']
         self.du = -1
         self.dv = 1
-        self.dem = np.array(1.0)
+        self.dem = np.ones((1,1))*np.array(1.0)
         self.sky_view = None
-        self.mask = np.array(1.0)
+        self.mask = np.ones((1,1))*np.array(1.0)
         #self.units = 'm'
-        self.veg_type = np.array(int(topoConfig['point_veg_type']))
+        self.veg_type = np.ones((1,1))*np.array(int(topoConfig['point_veg_type']))
         for v in self.images:
-            setattr(self, v, np.array(topoConfig['point_'+v]))
+            setattr(self, v, np.ones((1,1))*np.array(topoConfig['point_'+v]))
 
         self.x = np.array(self.v)
         self.y = np.array(self.u)
         # create the x,y vectors
         [self.X, self.Y] = np.meshgrid(self.x, self.y)
 
-        self.slope = np.array(0.0)
-        self.aspect = np.array(0.0)
+        self.slope = np.ones((1,1))*np.array(0.0)
+        self.aspect = np.ones((1,1))*np.array(0.0)
 
         self.stoporad_in_file = None
 

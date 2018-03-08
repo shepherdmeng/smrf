@@ -199,7 +199,7 @@ class image_data():
                                                      self.config['method'])
 
         elif self.config['distribution'] == 'point':
-            v = np.array(data.values[0])
+            v = data.values[0]*np.ones((1,1))
 
         if other_attribute is not None:
             setattr(self, other_attribute, v)

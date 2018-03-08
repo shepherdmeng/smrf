@@ -91,11 +91,11 @@ def thermal_correct_canopy(th, ta, tau, veg_height,
     ind = veg_height > height_thresh
 
     # correct incoming thermal
-    if point_model:
-        th = tau * th + (1 - tau) * veg
-        th = np.array(th)
-    else:
-        th[ind] = tau[ind] * th[ind] + (1 - tau[ind]) * veg[ind]
+    # if point_model:
+    #     th = tau * th + (1 - tau) * veg
+    #     th = np.array(th)
+    # else:
+    th[ind] = tau[ind] * th[ind] + (1 - tau[ind]) * veg[ind]
 
     return th
 

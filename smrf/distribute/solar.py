@@ -668,31 +668,37 @@ class solar(image_data.image_data):
 
             tmp_solar = float(str(stdoutdata).split(' ')[0])
 
-            ts_cmd = 'twostream -u %f -0 -t %s -w %s -g %s -r %f -s %f'\
-                     % (cosz, str(self.config['clear_tau']), \
-                        str(self.config['clear_omega']),
-                        str(self.config['clear_gamma']),
-                        0.5, tmp_solar)
+            # ts_cmd = 'twostream -u %f -0 -t %s -w %s -g %s -r %f -s %f'\
+            #          % (cosz, str(self.config['clear_tau']), \
+            #             str(self.config['clear_omega']),
+            #             str(self.config['clear_gamma']),
+            #             0.5, tmp_solar)
+            #
+            # irp = sp.Popen(ts_cmd,
+            #                shell=True, stdout=sp.PIPE,
+            #                stderr=sp.PIPE,
+            #                env={"PATH": os.environ['PATH'],
+            #                     "WORKDIR": os.environ['WORKDIR']})
+            #
+            # stdoutdata, stderrdata = irp.communicate()
+            # if irp.returncode != 0:
+            #     raise Exception('Two stream command failed')
+            #
+            # # split output to get correct value
+            # ts_string = [f for f in stdoutdata.split('\n') if 'total irradiance at bottom' in f]
+            # # get the number and cast to float
+            # ir_beam = ts_string[0].split(' ')[4]
+            # ir_beam = float(ir_beam)
 
-            irp = sp.Popen(ts_cmd,
-                           shell=True, stdout=sp.PIPE,
-                           stderr=sp.PIPE,
-                           env={"PATH": os.environ['PATH'],
-                                "WORKDIR": os.environ['WORKDIR']})
-
-            stdoutdata, stderrdata = irp.communicate()
-            if irp.returncode != 0:
-                raise Exception('Two stream command failed')
-
-            # split output to get correct value
-            ts_string = [f for f in stdoutdata.split('\n') if 'total irradiance at bottom' in f]
-            # get the number and cast to float
-            ir_beam = ts_string[0].split(' ')[4]
-            ir_beam = float(ir_beam)
+            # now use twostream
+            ir_beam = radiation.twostream(cosz, tmp_solar,
+                                          tau=self.config['clear_tau'],
+                                          omega=self.config['clear_omega'],
+                                          g=self.config['clear_gamma'])
 
             # get total irradiance at bottom
-            clear_ir_beam = np.array(ir_beam)
-            clear_ir_diffuse = np.array(0.0)
+            clear_ir_beam = ir_beam[4]*np.ones((1,1))
+            clear_ir_diffuse = np.array(0.0)*np.ones((1,1))
 
         return clear_ir_beam, clear_ir_diffuse
 
@@ -766,31 +772,36 @@ class solar(image_data.image_data):
 
             tmp_solar = float(str(stdoutdata).split(' ')[0])
 
-            ts_cmd = 'twostream -u %f -0 -t %s -w %s -g %s -r %f -s %f'\
-                     % (cosz, str(self.config['clear_tau']), \
-                        str(self.config['clear_omega']),
-                        str(self.config['clear_gamma']),
-                        0.5, tmp_solar)
+            # ts_cmd = 'twostream -u %f -0 -t %s -w %s -g %s -r %f -s %f'\
+            #          % (cosz, str(self.config['clear_tau']), \
+            #             str(self.config['clear_omega']),
+            #             str(self.config['clear_gamma']),
+            #             0.5, tmp_solar)
+            #
+            # irp = sp.Popen(ts_cmd,
+            #                shell=True, stdout=sp.PIPE,
+            #                stderr=sp.PIPE,
+            #                env={"PATH": os.environ['PATH'],
+            #                     "WORKDIR": os.environ['WORKDIR']})
+            #
+            # stdoutdata, stderrdata = irp.communicate()
+            # if irp.returncode != 0:
+            #     raise Exception('Two stream command failed')
+            #
+            # # split output to get correct value
+            # ts_string = [f for f in stdoutdata.split('\n') if 'total irradiance at bottom' in f]
+            # # get the number and cast to float
+            # vis_beam = ts_string[0].split(' ')[4]
+            # vis_beam = float(vis_beam)
 
-            irp = sp.Popen(ts_cmd,
-                           shell=True, stdout=sp.PIPE,
-                           stderr=sp.PIPE,
-                           env={"PATH": os.environ['PATH'],
-                                "WORKDIR": os.environ['WORKDIR']})
-
-            stdoutdata, stderrdata = irp.communicate()
-            if irp.returncode != 0:
-                raise Exception('Two stream command failed')
-
-            # split output to get correct value
-            ts_string = [f for f in stdoutdata.split('\n') if 'total irradiance at bottom' in f]
-            # get the number and cast to float
-            vis_beam = ts_string[0].split(' ')[4]
-            vis_beam = float(vis_beam)
+            vis_beam = radiation.twostream(cosz, tmp_solar,
+                                          tau=self.config['clear_tau'],
+                                          omega=self.config['clear_omega'],
+                                          g=self.config['clear_gamma'])
 
             # get total irradiance at bottom
-            clear_vis_beam = np.array(vis_beam)
-            clear_vis_diffuse = np.array(0.0)
+            clear_vis_beam = vis_beam[4]*np.ones((1,1))
+            clear_vis_diffuse = np.array(0.0)*np.ones((1,1))
 
         return clear_vis_beam, clear_vis_diffuse
 

@@ -725,9 +725,6 @@ def shade(slope, aspect, azimuth, point_model, cosz=None, zenith=None):
     # mu = ctheta * costbl[s] + stheta * sintbl[s] * cosdtbl[a]
     mu = ctheta * costbl + stheta * slope * np.cos(azimuth - aspect)
 
-    if point_model:
-        mu = np.array(mu)
-
     mu[mu < 0] = 0
     mu[mu > 1] = 1
 
@@ -808,30 +805,15 @@ def cf_cloud(beam, diffuse, cf, point_model):
     c_brad = c_grad * bf_c
     c_drad = c_grad - c_brad
 
-    if point_model:
-        if cf <= CRAT1:
-            c_brad = 0
-            c_drad = c_grad
+    ind = cf <= CRAT1
+    c_brad[ind] = 0
+    c_drad[ind] = c_grad[ind]
 
-        elif cf > CRAT2:
-            c_drad = diffuse * cf
-            c_brad = c_grad - c_drad
+    # minimal cloud attenution, no beam ratio reduction
+    ind = cf > CRAT2
 
-        c_drad = np.array(c_drad)
-        c_brad = np.array(c_brad)
-        c_grad = np.array(c_grad)
-
-    else:
-        # extensive cloud attenuation, no beam
-        ind = cf <= CRAT1
-        c_brad[ind] = 0
-        c_drad[ind] = c_grad[ind]
-
-        # minimal cloud attenution, no beam ratio reduction
-        ind = cf > CRAT2
-
-        c_drad[ind] = diffuse[ind] * cf[ind]
-        c_brad[ind] = c_grad[ind] - c_drad[ind]
+    c_drad[ind] = diffuse[ind] * cf[ind]
+    c_brad[ind] = c_grad[ind] - c_drad[ind]
 
     return c_grad, c_drad
 
