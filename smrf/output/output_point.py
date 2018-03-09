@@ -38,6 +38,10 @@ class output_point():
         for v in variable_list:
             variable_list[v]['file_name'] = \
                 variable_list[v]['out_location'] + '.csv'
+            # open file
+            variable_list[v]['fp'] = open(variable_list[v]['file_name'], 'w')
+            #write first line
+            variable_list[v]['fp'].write('date_time,{}\n'.format(v))
 
         self.variable_list = variable_list
 
@@ -92,8 +96,13 @@ class output_point():
 
         #print(self.variable_list[variable]['values'])
         self.variable_list[variable]['values'][time == date_time] = data
+        # output csv
+        wl = '{},{}\n'.format(pd.to_datetime(date_time).strftime(self.fmt),
+                              data)
+        self.variable_list[variable]['fp'].write(wl)
         # output csv if this is the last time step
         if date_time == time[-1]:
-            fp = self.variable_list[variable]['file_name']
-            self.variable_list[variable]['df'][variable] = self.variable_list[variable]['values']
-            self.variable_list[variable]['df'].to_csv(fp, index=False)
+            self.variable_list[variable]['fp'].close()
+        #     fp = self.variable_list[variable]['file_name']
+        #     self.variable_list[variable]['df'][variable] = self.variable_list[variable]['values']
+        #     self.variable_list[variable]['df'].to_csv(fp, index=False)

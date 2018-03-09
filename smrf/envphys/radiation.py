@@ -894,13 +894,16 @@ def twostream(mu0, S0, tau=0.2, omega=0.85, g=0.3, R0=0.5, d=False):
     cmd_str = 'twostream -u %s -0 -t %s -w %s -g %s -r %s -s %s %s' % \
         (str(mu0), str(tau), str(omega), str(g), str(R0), str(S0), dflag)
 
-    p = sp.Popen(cmd_str, stdout=sp.PIPE, shell=True, env={"PATH": IPW})
+    #p = sp.Popen(cmd_str, stdout=sp.PIPE, shell=True, env={"PATH": IPW})
+    p = sp.Popen(cmd_str, stdout=sp.PIPE, stderr=sp.PIPE,
+                 shell=True,
+                 env={"PATH": os.environ['PATH'],
+                 "WORKDIR": os.environ['WORKDIR']})
 
     # get the results
-    out, err = p.communicate()
+    stdout, stderr = p.communicate()
 
-    c = out.rstrip().split('\n')
-
+    c = stdout.rstrip().split('\n')
     R = np.ndarray((6, 1))
     for i, m in enumerate(c):
         R[i] = float(m.rstrip().split(' ')[-1])
