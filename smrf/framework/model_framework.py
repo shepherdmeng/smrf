@@ -196,14 +196,11 @@ class SMRF():
 
         # cast stations to list
         section_filt = ['stations', 'air_temp', 'precip', 'wind', 'solar', 'vapor_pressure']
-        for sf in section_filt:
-            # if self.config['stations']['stations'] is not None and type(self.config['stations']['stations']) != list:
-            #     self.config['stations']['stations'] = [self.config['stations']['stations'].upper()]
-            if self.config[sf]['stations'] is not None and type(self.config[sf]['stations']) != list:
-                self.config[sf]['stations'] = [self.config[sf]['stations'].upper()]
-            # if self.config['wind']['stations'] is not None and type(self.config['wind']['stations']) != list:
-            #     self.config['wind']['stations'] = [self.config['wind']['stations'].upper()]
-            #print(self.config['stations']['stations'].upper())
+        if 'gridded' not in self.config:
+            for sf in section_filt:
+                    if self.config[sf]['stations'] is not None and type(self.config[sf]['stations']) != list:
+                        self.config[sf]['stations'] = [self.config[sf]['stations'].upper()]
+
         # process the system variables
         for k,v in self.config['system'].items():
             setattr(self,k,v)
