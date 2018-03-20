@@ -343,8 +343,8 @@ class ppt(image_data.image_data):
                                     storm #{0}'''.format(self.storm_id+1))
                 # determine the precip phase and den
                 snow_den, perc_snow = snow.calc_phase_and_density(dpt,
-                                                                  self.precip,
-                                                                  nasde_model=self.nasde_model)
+                                                  self.storm_total,
+                                                  nasde_model=self.nasde_model)
 
             else:
                 snow_den = np.zeros(self.precip.shape)
