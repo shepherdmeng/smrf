@@ -332,8 +332,10 @@ class ppt(image_data.image_data):
                     self._logger.debug('''Distributing Total Precip
                                         for Storm #{0}'''
                                        .format(self.storm_id+1))
+
                     self._distribute(storm[self.stations].astype(float),
                                      other_attribute='storm_total')
+
                     self.storm_total = utils.set_min_max(self.storm_total,
                                                          self.min,
                                                          self.max)
@@ -341,9 +343,9 @@ class ppt(image_data.image_data):
             if self.storming and dpt.min() < 2.0:
                 self._logger.debug('''Calculating new snow density for
                                     storm #{0}'''.format(self.storm_id+1))
-                # determine the precip phase and den
+                # determine the precip phase and density
                 snow_den, perc_snow = snow.calc_phase_and_density(dpt,
-                                                  self.storm_total,
+                                                  self.storm_total[self.precip > 0.0],
                                                   nasde_model=self.nasde_model)
 
             else:

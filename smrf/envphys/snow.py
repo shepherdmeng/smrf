@@ -404,7 +404,7 @@ def marks2017(Tpp,pp):
     rho_ns = d_rho_m = d_rho_c = zs = rho_s = swe = pcs = np.zeros(Tpp.shape)
     rho = np.ones(Tpp.shape)
 
-    if np.any(pp > 0):
+    if np.any(pp > 0.0):
 
         # check the precipitation temperature
         Tpp, tsnow = check_temperature(Tpp, Tmax=Tmax, Tmin=Tmin)
