@@ -273,13 +273,13 @@ class ppt(image_data.image_data):
 
         self._logger.debug('%s Distributing all precip' % data.name)
 
-        #Only use the clipped data adjusted by storm for marks2017
+        # Only use the clipped data adjusted by storm for marks2017
         if self.nasde_model == 'marks2017':
             data = self.corrected_precip.loc[time]
         else:
             data = data[self.stations]
 
-        #Adjust the precip for undercatchment
+        # Adjust the precip for undercatchment
         if self.config['adjust_for_undercatch']:
             self._logger.debug('%s Adjusting precip for undercatch...' % data.name)
             data = precip.adjust_for_undercatch(data, wind, temp, self.config,
@@ -324,7 +324,7 @@ class ppt(image_data.image_data):
                 # Entered into a new storm period distribute the storm total
                 self._logger.debug('{0} Entering storm #{1}'
                                    .format(data.name, self.storm_id+1))
-                #if dpt.min() < 2.0:
+
                 self._logger.debug("Distributing total storm precip"
                                    " for Storm #{0}"
                                    .format(self.storm_id+1))
